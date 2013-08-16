@@ -9,7 +9,7 @@ import com.ml.mf.data.Instance;
 import com.ml.mf.data.Item;
 import com.ml.mf.data.User;
 import com.ml.mf.exception.FeatureException;
-import com.ml.mf.utils.FeatureVectorUtils;
+import com.ml.mf.utils.VectorUtils;
 import com.ml.mf.data.UserItem;
 
 /**
@@ -28,9 +28,9 @@ public class MatrixFactorizationModel implements SGDLearner, Classifier{
     
     public double squareLoss = 0;
     
-    /** ItemMF id (index) to ItemMF object map */
+    /** Item id (index) to Item object map */
     Map<Integer, Item> items = new HashMap<Integer, Item>();
-    /** UserMF id (index) to UserMF object map */
+    /** User id (index) to User object map */
     Map<Integer, User> users = new HashMap<Integer, User>();
     
     @Override
@@ -53,22 +53,22 @@ public class MatrixFactorizationModel implements SGDLearner, Classifier{
         Item item = items.get(itemIndex);
         
         // update the weights. 
-        double epsilon = FeatureVectorUtils.calInnerProduct(user.getLatentFeatures(), 
+        double epsilon = VectorUtils.calInnerProduct(user.getLatentFeatures(), 
                 item.getLatentFeatures()) - rating;
         squareLoss += epsilon * epsilon;
         
         // update User latent feature vector. 
         // u(t) = (1-\eta * lamda)u(t-1)-\eta * epsilon * v(t-1). 
         // u(t) is the User for time t,  and v(t) is Item for time t. 
-        double[] firstTerm = FeatureVectorUtils.calMultiply(1-stepSize*regularizationRate, user.getLatentFeatures()); 
-        double[] secondTerm = FeatureVectorUtils.calMultiply(stepSize * epsilon, item.getLatentFeatures()) ;
-        double[] updatedUserFeatures = FeatureVectorUtils.calMinus(firstTerm, secondTerm);
+        double[] firstTerm = VectorUtils.calMultiply(1-stepSize*regularizationRate, user.getLatentFeatures()); 
+        double[] secondTerm = VectorUtils.calMultiply(stepSize * epsilon, item.getLatentFeatures()) ;
+        double[] updatedUserFeatures = VectorUtils.calMinus(firstTerm, secondTerm);
         
         // update Item latent feature vector
         // v(t) = (1-\eta * lamda)v(t-1) - \eta * epsilon * u(t-1)
-        firstTerm = FeatureVectorUtils.calMultiply(1-stepSize*regularizationRate, item.getLatentFeatures());
-        secondTerm = FeatureVectorUtils.calMultiply(stepSize * epsilon, user.getLatentFeatures());
-        double[] updatedItemFeatures = FeatureVectorUtils.calMinus(firstTerm, secondTerm);
+        firstTerm = VectorUtils.calMultiply(1-stepSize*regularizationRate, item.getLatentFeatures());
+        secondTerm = VectorUtils.calMultiply(stepSize * epsilon, user.getLatentFeatures());
+        double[] updatedItemFeatures = VectorUtils.calMinus(firstTerm, secondTerm);
         
         user.setLatentFeatures(updatedUserFeatures);
         item.setLatentFeatures(updatedItemFeatures);
@@ -88,7 +88,7 @@ public class MatrixFactorizationModel implements SGDLearner, Classifier{
         
         double predictedValue = 0;
         try{ 
-            predictedValue = FeatureVectorUtils.calInnerProduct(user.getLatentFeatures(), 
+            predictedValue = VectorUtils.calInnerProduct(user.getLatentFeatures(), 
                     item.getLatentFeatures());
         } catch(Exception e){
             System.out.println("Cannot prodict the rating for given instance. Exception" +  
